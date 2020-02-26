@@ -1,5 +1,5 @@
 ---
-title: "index"
+title: "Index"
 author: "Nathan Haywood"
 date: "2/26/2020"
 output: html_document
@@ -8,7 +8,11 @@ bibliography: R studio/data/bibliography.bib
 
 This is an updated website
 
-*[Lab3] (Lab3_nch.html)
-*[Lab4] (Lab4_nch.html)
-*[Lab5A] (Lab5_nch_Activities.html)
-*[Lab5E] (Lab5_nch_Exercises.html)
+[Lab3] (Lab3_nch.html)
+[Lab4] (Lab4_nch.html)
+[Lab5A] (Lab5_nch_Activities.html)
+[Lab5E] (Lab5_nch_Exercises.html)
+
+Application written in R [@RCoreTeam] using the Shiny framework [@Chang2015].
+
+# REFERENCES
