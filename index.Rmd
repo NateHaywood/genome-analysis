@@ -1,0 +1,13 @@
+---
+title: "index"
+author: "Nathan Haywood"
+date: "2/26/2020"
+output: html_document
+---
+
+This is an updated website
+
+*[Lab3] (Lab3_nch.html)
+*[Lab4] (Lab4_nch.html)
+*[Lab5a] (Lab5_nch_Activities.html)
+*[Lab5e] (Lab5_nch_Exercises.html)
