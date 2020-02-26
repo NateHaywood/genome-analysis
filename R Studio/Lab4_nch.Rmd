@@ -1,0 +1,69 @@
+---
+title: "Lab 4"
+author: "Nathan Haywood"
+date: "2/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(plotly)
+library(DT)
+SNPs<- read.table("/Users/nate/Desktop/R:Python/R Studio/23andMe_complete.txt", header = TRUE, sep = "\t")
+SNPs$chromosome = ordered(SNPs$chromosome, levels=c(seq(1, 22), "X", "Y", "MT"))
+```
+ 
+## Exercise 1: Add title and labels for the x and y axis to Lab3 ex1. Color the bars blue
+
+```{r}
+newGraph1 <- ggplot(data = SNPs) + geom_bar(mapping = aes(x = chromosome), fill = "blue") + ggtitle("Ave SNP Count for each Human Chromosome") + xlab("Chromosome Name") + ylab("Total Number of SNPs")
+newGraph1 
+```
+
+## Exercise 2: To Lab3 ex3 add more defined x and y axis labels, add a title, Change the colors of the genotypes, so that the dinucleotides (e.g. AA) are one color, the mononucleotides (A) are another and D’s and I’s a third color. One way to do this is to specify the color of each genotype.
+
+```{r}
+table1 <- c("AA" = "blue", "AC" = "blue", "AG" = "blue", "AT" = "blue", "CC" = "blue", "CG" = "blue", "CT" = "blue", "GG" = "blue", "GT" = "blue", "TT" = "blue",
+           "A" = "red", "C" = "red", "G" = "red", "T" = "red",
+           "--" = "green", "DD" = "green", "DI" = "green", "D" = "green", "II" = "green", "I" = "green")
+
+newGraph2 <- ggplot(data = SNPs) + geom_bar(mapping = aes(x = chromosome, fill = genotype)) +
+             ggtitle("Ave SNP Count for each Human Chromosome") + xlab("Chromosome Name") + ylab("Total Number of SNPs")
+newGraph2 + scale_fill_manual(values = table1)
+```
+
+## Exercise 3: From Lab3 ex5, make an output png file, then load the file into report using the RMarkdown or html format.
+
+```{r}
+ppi <- 300
+png("SNP_example_plot.png", width=6*ppi, height=6*ppi, res=ppi)
+ggplot(data = SNPs) + geom_bar(mapping = aes(x = chromosome, fill = genotype), position = "dodge")
+dev.off()
+```
+<img src = "SNP_example_plot.png" alt = "Genotype counts per chromosome" style = "width: 600px;" />
+
+## Exercise 4: For Lab3 ex6 add more defined x and y axis labels, add a title, make the x-axis for each graph readable in your final report file.
+
+```{r, fig.height= 10, fig.width= 18}
+newGraph3 <- ggplot(data = SNPs) + geom_bar(mapping = aes(x = chromosome, fill = genotype), position = "dodge") + facet_wrap(~ genotype, nrow = 5) +
+             ggtitle("Ave SNP Count for each Human Chromosome") + xlab("Chromosome Name") + ylab("Total Number of SNPs")
+newGraph3
+```
+
+## Exercise 5: Turn Lab3 ex6 into an interactive graph using plotly
+
+```{r, fig.height= 10, fig.width= 10}
+newGraph4 <- ggplot(data = SNPs) + geom_bar(mapping = aes(x = chromosome, fill = genotype), position = "dodge") + facet_wrap(~ genotype, nrow = 10)
+ggplotly(newGraph4)
+```
+
+## Exercise 6: Make an interactive table of the SNPS found in on the Y chromosome from the 23andMe_complete data set
+
+```{r}
+datatable(subset(SNPs, chromosome == "Y"))
+```
+

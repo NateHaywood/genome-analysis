@@ -1,0 +1,57 @@
+---
+title: "Lab5_nch"
+author: "Nathan Haywood"
+date: "2/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+SNPs <- read_tsv("data/23andMe_complete.txt", skip = 14, col_types = 
+                   cols(chromosome = col_factor()))
+```
+
+## Exercise 1: Subset (select) the 23andMe Complete table to just position and genotype
+```{r}
+subset7 <- SNPs %>%
+  select(position, genotype)
+subset7
+```
+
+## Exercise 2: Filter to just the MT chromosome and remove genotypes A and T.
+```{r}
+subset8 <- SNPs %>%
+  filter(chromosome == "MT", genotype != "A", genotype != "T")
+subset8
+```
+
+## Exercise 3: Use group_by() and summarize() to find the min positon, max position and total number of positions for each chromosomes.
+```{r}
+subset9 <- SNPs %>%
+  group_by(chromosome) %>%
+  summarize(min_position = min(position), max_position = max(position), n = n())
+subset9
+```
+
+## Exercise 4: Building on ex3 create using mutate a new column with the density of SNPs for each chromosome based the max position - min position divide by the total number of SNPs
+```{r}
+subset10 <- subset9 %>%
+  mutate(SNP_density = (max_position - min_position) / n)
+subset10
+```
+
+## Exercise 5: Building on ex3 sort chromosomes based on SNP density.
+```{r}
+subset11 <- subset10 %>%
+  arrange(SNP_density)
+subset11
+```
+
+## Exercise 6: Export the above table as a csv file to your data directory (There will be no results except the code to show me). However you will get an error when knitting if the code is not correct.
+```{r}
+write_csv(subset11, path = "data/densityArrangedTable.csv")
+```
