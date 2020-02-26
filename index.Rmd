@@ -10,5 +10,5 @@ This is an updated website
 
 *[Lab3] (Lab3_nch.html)
 *[Lab4] (Lab4_nch.html)
-*[Lab5a] (Lab5_nch_Activities.html)
-*[Lab5e] (Lab5_nch_Exercises.html)
+*[Lab5A] (Lab5_nch_Activities.html)
+*[Lab5E] (Lab5_nch_Exercises.html)
