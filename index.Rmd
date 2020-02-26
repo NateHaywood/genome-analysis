@@ -10,15 +10,15 @@ This is a test website.
 
 Here are the last few labs from the class:
 
-*[Lab3] (Lab3_nch.html)
+*[Lab3](Lab3_nch.html)
 
-*[Lab4] (Lab4_nch.html)
+*[Lab4](Lab4_nch.html)
 
-*[Lab5A] (Lab5_nch_Activities.html)
+*[Lab5A](Lab5_nch_Activities.html)
 
-*[Lab5E] (Lab5_nch_Exercises.html)
+*[Lab5E](Lab5_nch_Exercises.html)
 
-I don't understand this program yet.
+This syntax is killing me.
 
 Application written in R [@RCoreTeam] using the Shiny framework [@Chang2015].
 
