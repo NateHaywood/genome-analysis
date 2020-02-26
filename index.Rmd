@@ -6,7 +6,9 @@ output: html_document
 bibliography: R studio/data/bibliography.bib
 ---
 
-This is an updated website
+This is a test website.
+
+Here are the last few labs from the class
 
 [Lab3] (Lab3_nch.html)
 [Lab4] (Lab4_nch.html)
