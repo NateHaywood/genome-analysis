@@ -1,0 +1,63 @@
+---
+title: "Command Line Lab"
+author: "Nathan Haywood"
+date: "3/9/2020"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## These lines begin in the working directory and begin by making a new directory, "697_lab2". Once the directory is created, it is entered.
+```{sh, eval=FALSE}
+mkdir 697_lab2
+
+cd /Users/nate/Desktop/genome-analysis/697_lab2
+```
+
+## In the 697_lab2 directory, a new text file "tempfile.txt" is created and can be written into. The second command confirms that the file was created by listing all of the files in the 697_lab2 directory
+```{sh, eval=FALSE}
+nano tempfile.txt
+
+ls -la
+```
+
+## The first command returns us to the working directory, where the next line creates a copy of the index.Rmd file and names it temp2.
+```{sh, eval=FALSE}
+cd ..
+
+cp index.Rmd temp2
+```
+
+## The new temp2 file is then  moved into the 697_lab2 directory and then the directory is entered.
+```{sh, eval=FALSE}
+mv temp2 /Users/nate/Desktop/genome-analysis/697_lab2
+
+cd /Users/nate/Desktop/genome-analysis/697_lab2
+```
+
+## The first line displays the first 4 lines of the temp2 file and the second line displays the finals 4 lines of the temp2 file.
+```{sh, eval=FALSE}
+head -4 temp2 
+
+tail -4 temp2
+```
+
+## The temp2 file is then appended to the end of the tempfile that was created earlier with the nano call. Appending the file will simply attach the contents of the of one file to the end of the other. The temp2 file is then removed, but the command will ask for confirmation before permanently deleting the file.
+```{sh, eval=FALSE}
+cat temp 2 >> tempfile
+
+rm -i temp2
+```
+
+## The grep call will search the specified files and will return instances of where the specific word or sequence is found. The chmod call will alter the access permissions of the file, and can be specified to be writing reading or access privledges.
+```{sh, eval=FALSE}
+grep -i "Nathan Haywood" tempfile.txt
+
+w chmod tempfile u+g
+```
+
+
+
+
+
