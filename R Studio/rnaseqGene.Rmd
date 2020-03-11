@@ -594,17 +594,20 @@ resGR <- lfcShrink(dds, coef="dex_trt_vs_untrt", type="apeglm", format="GRanges"
 resGR
 ```
 
+## Symbols are added to include gene labels on the plot
 ```{r}
 ## --------------------------------------------------------------------------
 ens.str <- substr(names(resGR), 1, 15)
 resGR$symbol <- mapIds(org.Hs.eg.db, ens.str, "SYMBOL", "ENSEMBL")
 ```
 
+## The "Gviz" package is loaded.
 ```{r}
 ## --------------------------------------------------------------------------
 library("Gviz")
 ```
 
+## A million base pairs window on either side of the gene with the smallest p value is set to collect a subset of genes within that window. 
 ```{r}
 ## --------------------------------------------------------------------------
 window <- resGR[topGene] + 1e6
@@ -614,12 +617,14 @@ naOrDup <- is.na(resGRsub$symbol) | duplicated(resGRsub$symbol)
 resGRsub$group <- ifelse(naOrDup, names(resGRsub), resGRsub$symbol)
 ```
 
+## A vector identifying if the "padj" value of the gene was low.
 ```{r}
 ## --------------------------------------------------------------------------
 status <- factor(ifelse(resGRsub$padj < 0.05 & !is.na(resGRsub$padj),
                         "sig", "notsig"))
 ```
 
+## A plot showing the locations of each gene on is created with functions from the "Gviz" package.
 ```{r}
 ## ----gvizplot--------------------------------------------------------------
 options(ucscChromosomeNames = FALSE)
@@ -631,11 +636,13 @@ plotTracks(list(g, d, a), groupAnnotation = "group",
            notsig = "grey", sig = "hotpink")
 ```
 
+## The "sva" package is loaded.
 ```{r}
 ## --------------------------------------------------------------------------
 library("sva")
 ```
 
+## A matrix with the normalized counts is created for samples where the average count was greater than 1.
 ```{r}
 ## --------------------------------------------------------------------------
 dat  <- counts(dds, normalized = TRUE)
@@ -647,6 +654,7 @@ svseq <- svaseq(dat, mod, mod0, n.sv = 2)
 svseq$sv
 ```
 
+## This is used to check how well the "SVA" method recovered the sources of variation.
 ```{r}
 ## ----svaplot---------------------------------------------------------------
 par(mfrow = c(2, 1), mar = c(3,5,3,1))
@@ -656,6 +664,7 @@ for (i in 1:2) {
  }
 ```
 
+## This is used to prevent the "SVA" method from impacting the counts.
 ```{r}
 ## --------------------------------------------------------------------------
 ddssva <- dds
@@ -664,11 +673,13 @@ ddssva$SV2 <- svseq$sv[,2]
 design(ddssva) <- ~ SV1 + SV2 + dex
 ```
 
+## The "RUVSeq" package is loaded.
 ```{r}
 ## --------------------------------------------------------------------------
 library("RUVSeq")
 ```
 
+## Usng the "RUVg" method, it's possible to estimate the factors of unwanted variation, which is similar to the "SVA" surrogate variables.
 ```{r}
 ## --------------------------------------------------------------------------
 set <- newSeqExpressionSet(counts(dds))
@@ -681,6 +692,7 @@ set <- RUVg(set, empirical, k=2)
 pData(set)
 ```
 
+## This shows how the factors can be estimated by "RUV".
 ```{r}
 ## ----ruvplot---------------------------------------------------------------
 par(mfrow = c(2, 1), mar = c(3,5,3,1))
@@ -690,6 +702,7 @@ for (i in 1:2) {
  }
 ```
 
+## It is possible to control these factors by defining them.
 ```{r}
 ## --------------------------------------------------------------------------
 ddsruv <- dds
@@ -698,6 +711,7 @@ ddsruv$W2 <- set$W_2
 design(ddsruv) <- ~ W1 + W2 + dex
 ```
 
+## The "fission" package is loaded, and a basic time course analysis is run. 
 ```{r}
 ## --------------------------------------------------------------------------
 library("fission")
@@ -705,6 +719,7 @@ data("fission")
 ddsTC <- DESeqDataSet(fission, ~ strain + minute + strain:minute)
 ```
 
+## This is a likelihood ratio test where the strain specific differences are removed over time.
 ```{r}
 ## ----fissionDE-------------------------------------------------------------
 ddsTC <- DESeq(ddsTC, test="LRT", reduced = ~ strain + minute)
@@ -713,6 +728,7 @@ resTC$symbol <- mcols(ddsTC)$symbol
 head(resTC[order(resTC$padj),], 4)
 ```
 
+## ggplot2 is used to show the counts for each gorup over a time frame.
 ```{r}
 ## ----fissioncounts, fig.width=6, fig.height=4.5----------------------------
 fiss <- plotCounts(ddsTC, which.min(resTC$padj), 
@@ -724,6 +740,7 @@ ggplot(fiss,
   scale_y_log10()
 ```
 
+## A "Wald" test for the log2 fold changes at individual time points.
 ```{r}
 ## --------------------------------------------------------------------------
 resultsNames(ddsTC)
@@ -731,12 +748,14 @@ res30 <- results(ddsTC, name="strainmut.minute30", test="Wald")
 res30[which.min(resTC$padj),]
 ```
 
+## Cluster significant genes can be shown by their profiles.
 ```{r}
 ## --------------------------------------------------------------------------
 betas <- coef(ddsTC)
 colnames(betas)
 ```
 
+## The log2 fold changes are plotted to a heatmap.
 ```{r}
 ## ----fissionheatmap--------------------------------------------------------
 topGenes <- head(order(resTC$padj),20)
@@ -748,6 +767,7 @@ pheatmap(mat, breaks=seq(from=-thr, to=thr, length=101),
          cluster_col=FALSE)
 ```
 
+## The information about the analysis pipeline is shown.
 ```{r}
 ## --------------------------------------------------------------------------
 sessionInfo()
