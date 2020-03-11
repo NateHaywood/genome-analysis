@@ -4,22 +4,27 @@ author: "Nathan Haywood"
 date: "3/4/2020"
 output: html_document
 ---
+
+## Loads the airway package
 ```{r}
 ## ----loadairway------------------------------------------------------------
 library("airway")
 ```
 
+## Sets the variable "dir" to the pathway where the airway package is locally stored
 ```{r}
 ## ----dir-------------------------------------------------------------------
 dir <- system.file("extdata", package="airway", mustWork=TRUE)
 ```
 
+## Lists all of the files and directories in the dir and then specifies for just the quant directories
 ```{r}
 ## ----list.files------------------------------------------------------------
 list.files(dir)
 list.files(file.path(dir, "quants"))
 ```
 
+## A comma separated values table is assigned to the variable "csvfile" and the first row of the file is extracted and shown.
 ```{r}
 ## ----sampleinfo------------------------------------------------------------
 csvfile <- file.path(dir, "sample_table.csv")
@@ -27,7 +32,7 @@ coldata <- read.csv(csvfile, row.names=1, stringsAsFactors=FALSE)
 coldata
 ```
 
-
+## A coldata table is created with two columns, names and files, and is populated with the paths to the quant files from the previous section.
 ```{r}
 ## ----makecoldata-----------------------------------------------------------
 coldata <- coldata[1:2,]
@@ -36,29 +41,34 @@ coldata$files <- file.path(dir, "quants", coldata$names, "quant.sf.gz")
 file.exists(coldata$files)
 ```
 
+## The tximeta package is loaded and run on the coldata table
 ```{r}
 ## ----tximeta, message=TRUE-------------------------------------------------
 library("tximeta")
 se <- tximeta(coldata)
 ```
 
+## "se" is a transcript object that was loaded in the tximeta package. The "dim" call checks the dimensions and the "head" call displays the first lines of the object.
 ```{r}
 ## ----lookse----------------------------------------------------------------
 dim(se)
 head(rownames(se))
 ```
 
+## The summarizeToGene call replicates then transforms the transcript object "se" to "gse"
 ```{r}
 ## ----summarize, message=TRUE-----------------------------------------------
 gse <- summarizeToGene(se)
 ```
 
+## The "dim" call checks the dimensions and the "head" call displays the first lines of the gene object.
 ```{r}
 ## ----lookgse---------------------------------------------------------------
 dim(gse)
 head(rownames(gse))
 ```
 
+## A graph is created with a plotting method to visualize the intersection of the colData object and the range of rows.
 ```{r}
 ## ----sumexp, echo=FALSE----------------------------------------------------
 par(mar=c(0,0,0,0))
@@ -76,12 +86,14 @@ polygon(c(45,47,47,45),c(75,75,95,95),col="palegreen3",border=NA)
 text(67.5,85,"colData")
 ```
 
+## The data call loads the full gse object.
 ```{r}
 ## ----loadfullgse-----------------------------------------------------------
 data(gse)
 gse
 ```
 
+## The "assayNames" call displays the titles of each column, while "head" shows the first few lines of the object and the "colSums" shows the sum of each column in the object.
 ```{r}
 ## ----assaysgse-------------------------------------------------------------
 assayNames(gse)
@@ -89,33 +101,39 @@ head(assay(gse), 3)
 colSums(assay(gse))
 ```
 
+## Shows the ranges for the first and final five genes.
 ```{r}
 ## ----rowrangesgse----------------------------------------------------------
 rowRanges(gse)
 ```
 
+## Shows the metadata related to each of the sequences.
 ```{r}
 ## ----lookseqinfo-----------------------------------------------------------
 seqinfo(rowRanges(gse))
 ```
 
+## Shows the information about the "gse" dataframe.
 ```{r}
 ## ----coldatagse------------------------------------------------------------
 colData(gse)
 ```
 
+## The "gse$donor" and "gse$condition" displays each of the parameters in the object.
 ```{r}
 ## ----gsevars---------------------------------------------------------------
 gse$donor
 gse$condition
 ```
 
+## Each of these renames these parameters.
 ```{r}
 ## ----gsevarsrename---------------------------------------------------------
 gse$cell <- gse$donor
 gse$dex <- gse$condition
 ```
 
+## The "levels(gse$dex) <- c("untrt", "trt")" call casts the names of the parameters to the new vector.
 ```{r}
 ## ----renamelevels----------------------------------------------------------
 levels(gse$dex)
@@ -123,6 +141,7 @@ levels(gse$dex)
 levels(gse$dex) <- c("untrt", "trt")
 ```
 
+## This loads the "magrittr" package and executes a pipe with the relevel function.
 ```{r}
 ## ----gsedex----------------------------------------------------------------
 library("magrittr")
@@ -130,37 +149,44 @@ gse$dex %<>% relevel("untrt")
 gse$dex
 ```
 
+## This line is  not executed, but is the equilvalent to the previous line of code.
 ```{r}
 ## ----explaincmpass, eval = FALSE-------------------------------------------
 #  gse$dex <- relevel(gse$dex, "untrt")
 ```
 
+## The "round" call displays the fragments that can be mapped to the genes.
 ```{r}
 ## ----countreads------------------------------------------------------------
 round( colSums(assay(gse)) / 1e6, 1 )
 ```
 
+## The "DESeq2 package is loaded.
 ```{r}
 ## ----loaddeseq2------------------------------------------------------------
 library("DESeq2")
 ```
 
+## This call creates a fully annotated dds object for the gene analysis.
 ```{r}
 ## ----makedds---------------------------------------------------------------
 dds <- DESeqDataSet(gse, design = ~ cell + dex)
 ```
 
+## This creates a countdata object that creates an assay with the counts from the gse object. The "head" call displays the first lines of the countdata object.
 ```{r}
 ## --------------------------------------------------------------------------
 countdata <- round(assays(gse)[["counts"]])
 head(countdata, 3)
 ```
 
+## The coldata object is recast to hold the data from the gse object.
 ```{r}
 ## --------------------------------------------------------------------------
 coldata <- colData(gse)
 ```
 
+## An object, "ddsMat", is created to hold the colData and countData objects.
 ```{r}
 ## --------------------------------------------------------------------------
 ddsMat <- DESeqDataSetFromMatrix(countData = countdata,
@@ -168,6 +194,7 @@ ddsMat <- DESeqDataSetFromMatrix(countData = countdata,
                                  design = ~ cell + dex)
 ```
 
+## This block is used to filter out the rows that contain one or fewer counts to isolate the data rows that have useful data.
 ```{r}
 ## --------------------------------------------------------------------------
 nrow(dds)
@@ -176,12 +203,14 @@ dds <- dds[keep,]
 nrow(dds)
 ```
 
+## This goes to continue filtering the dataset to isolate rows with a higher data density.
 ```{r}
 ## --------------------------------------------------------------------------
 # at least 3 samples with a count of 10 or higher
 keep <- rowSums(counts(dds) >= 10) >= 3
 ```
 
+## The output of this graph is used to show how the variance in the data grwos as the average does.
 ```{r}
 ## ----meanSdCts-------------------------------------------------------------
 lambda <- 10^seq(from = -1, to = 2, length = 1000)
@@ -190,12 +219,14 @@ library("vsn")
 meanSdPlot(cts, ranks = FALSE)
 ```
 
+## This graph is used to show how the log transformed graph has the highest varaince at a significantly lower average.
 ```{r}
 ## ----meanSdLogCts----------------------------------------------------------
 log.cts.one <- log2(cts + 1)
 meanSdPlot(log.cts.one, ranks = FALSE)
 ```
 
+## This shows the raw values used to create the first graph.
 ```{r}
 ## ----vst-------------------------------------------------------------------
 vsd <- vst(dds, blind = FALSE)
@@ -203,12 +234,14 @@ head(assay(vsd), 3)
 colData(vsd)
 ```
 
+## This shows the raw values used to create the second graph.
 ```{r}
 ## ----rlog------------------------------------------------------------------
 rld <- rlog(dds, blind = FALSE)
 head(assay(rld), 3)
 ```
 
+## The packages "dplyr" and "ggplot2" are loaded and the samples are plotted against eachother to show the differences.
 ```{r}
 ## ----transformplot, fig.width = 6, fig.height = 2.5------------------------
 library("dplyr")
@@ -228,18 +261,21 @@ ggplot(df, aes(x = x, y = y)) + geom_hex(bins = 80) +
   coord_fixed() + facet_grid( . ~ transformation) 
 ```
 
+## This is used to determine the overall similarity between the samples.
 ```{r}
 ## --------------------------------------------------------------------------
 sampleDists <- dist(t(assay(vsd)))
 sampleDists
 ```
 
+## The packages "pheatmap" and "RColorBrewer" are loaded.
 ```{r}
 ## --------------------------------------------------------------------------
 library("pheatmap")
 library("RColorBrewer")
 ```
 
+## This creates a heatmap to show the sample distance matrix.
 ```{r}
 ## ----distheatmap, fig.width = 6.1, fig.height = 4.5------------------------
 sampleDistMatrix <- as.matrix( sampleDists )
@@ -252,12 +288,14 @@ pheatmap(sampleDistMatrix,
          col = colors)
 ```
 
+## The "PoiClaClu" package is loaded and used to do Poisson Distance analysis.
 ```{r}
 ## --------------------------------------------------------------------------
 library("PoiClaClu")
 poisd <- PoissonDistance(t(counts(dds)))
 ```
 
+## The Poisson Distance analysis is used to create a heatmap for the sample distances. The Poisson distance matrix uses the raw data values instead of the normalized ones.
 ```{r}
 ## ----poisdistheatmap, fig.width = 6.1, fig.height = 4.5--------------------
 samplePoisDistMatrix <- as.matrix( poisd$dd )
@@ -269,11 +307,13 @@ pheatmap(samplePoisDistMatrix,
          col = colors)
 ```
 
+## A Principle Components Analysis plot is created with the to show variance.
 ```{r}
 ## ----plotpca, fig.width=6, fig.height=4.5----------------------------------
 plotPCA(vsd, intgroup = c("dex", "cell"))
 ```
 
+## This uses the ggplot2 package to begin working on the PCA plot from the vsd data.
 ```{r}
 ## --------------------------------------------------------------------------
 pcaData <- plotPCA(vsd, intgroup = c( "dex", "cell"), returnData = TRUE)
@@ -282,6 +322,7 @@ percentVar <- round(100 * attr(pcaData, "percentVar"))
 
 ```
 
+## ggplot2 is used to create the PCA plot with significantly more control voer the details.
 ```{r}
 ## ----ggplotpca, fig.width=6, fig.height=4.5--------------------------------
 ggplot(pcaData, aes(x = PC1, y = PC2, color = dex, shape = cell)) +
@@ -292,6 +333,7 @@ ggplot(pcaData, aes(x = PC1, y = PC2, color = dex, shape = cell)) +
   ggtitle("PCA with VST data")
 ```
 
+## The "glmpca" package is loaded and  creates a generalized PCA plot.
 ```{r}
 ## --------------------------------------------------------------------------
 library("glmpca")
@@ -299,14 +341,13 @@ gpca <- glmpca(counts(dds), L=2)
 gpca.dat <- gpca$factors
 gpca.dat$dex <- dds$dex
 gpca.dat$cell <- dds$cell
-```
 
-```{r}
 ## ----glmpca, fig.width=6, fig.height=4.5-----------------------------------
 ggplot(gpca.dat, aes(x = dim1, y = dim2, color = dex, shape = cell)) +
   geom_point(size =3) + coord_fixed() + ggtitle("glmpca - Generalized PCA")
 ```
 
+## An MDS (Multidimensional Scaling) plot is best used with the matrixes of distances instead of the matrixes of data.
 ```{r}
 ## ----mdsvst, fig.width=6, fig.height=4.5-----------------------------------
 mds <- as.data.frame(colData(vsd))  %>%
@@ -315,6 +356,7 @@ ggplot(mds, aes(x = `1`, y = `2`, color = dex, shape = cell)) +
   geom_point(size = 3) + coord_fixed() + ggtitle("MDS with VST data")
 ```
 
+## A similar MDS plot can be created with the Poisson Distances.
 ```{r}
 ## ----mdspois, fig.width=6, fig.height=4.5----------------------------------
 mdsPois <- as.data.frame(colData(dds)) %>%
@@ -323,77 +365,91 @@ ggplot(mdsPois, aes(x = `1`, y = `2`, color = dex, shape = cell)) +
   geom_point(size = 3) + coord_fixed() + ggtitle("MDS with PoissonDistances")
 ```
 
+## This runs a differential expression pipeline on the raw counts.
 ```{r}
 ## ----airwayDE--------------------------------------------------------------
 dds <- DESeq(dds)
 ```
 
+## The results of the differential expression pipeline are shown here.
 ```{r}
 ## --------------------------------------------------------------------------
 res <- results(dds)
 res
 ```
 
+## The more controlled results could also have been achieved by directly specifying the results parameters.
 ```{r}
 ## --------------------------------------------------------------------------
 res <- results(dds, contrast=c("dex","trt","untrt"))
 ```
 
+## The "res" dataframe object metadata is shown here.
 ```{r}
 ## --------------------------------------------------------------------------
 mcols(res, use.names = TRUE)
 ```
 
+## A summary of the "res" object is shown here.
 ```{r}
 ## --------------------------------------------------------------------------
 summary(res)
 ```
 
+## The false discovery rate threshold is lowered and the results function is updated to optimize filtration.
 ```{r}
 ## --------------------------------------------------------------------------
 res.05 <- results(dds, alpha = 0.05)
 table(res.05$padj < 0.05)
 ```
 
+## This selects for genes that have significant changes by more than a factor of 2 (either 0.5 or 2).
 ```{r}
 ## --------------------------------------------------------------------------
 resLFC1 <- results(dds, lfcThreshold=1)
 table(resLFC1$padj < 0.1)
 ```
 
+## Here the results of the comparison between two levels are shown.
 ```{r}
 ## --------------------------------------------------------------------------
 results(dds, contrast = c("cell", "N061011", "N61311"))
 ```
 
+## Multiple Testing methods are required to provide a P value that disproves the null.
 ```{r}
 ## ----sumres----------------------------------------------------------------
 sum(res$pvalue < 0.05, na.rm=TRUE)
 sum(!is.na(res$pvalue))
 ```
 
+## Here we are looking for the number of genes with a less than 10% false positive rate.
 ```{r}
 ## --------------------------------------------------------------------------
 sum(res$padj < 0.1, na.rm=TRUE)
 ```
 
+## The genes are then arranged by strongest downregulation.
 ```{r}
 ## --------------------------------------------------------------------------
 resSig <- subset(res, padj < 0.1)
 head(resSig[ order(resSig$log2FoldChange), ])
 ```
 
+## They can also be arranged by the strongest upregulation.
 ```{r}
 ## --------------------------------------------------------------------------
 head(resSig[ order(resSig$log2FoldChange, decreasing = TRUE), ])
 ```
 
+## The plotCounts method shows counts for the groupings of the genes.
 ```{r}
 ## ----plotcounts------------------------------------------------------------
 topGene <- rownames(res)[which.min(res$padj)]
 plotCounts(dds, gene = topGene, intgroup=c("dex"))
 ```
 
+## The "ggbeeswarm" package is loaded and used along with ggplot2 to create a custom plotCount plot.
 ```{r}
 ## ----ggplotcountsjitter, fig.width = 4, fig.height = 3---------------------
 library("ggbeeswarm")
@@ -403,12 +459,14 @@ ggplot(geneCounts, aes(x = dex, y = count, color = cell)) +
   scale_y_log10() +  geom_beeswarm(cex = 3)
 ```
 
+## The normalized counts have connected lines to indicate cell lines impact.
 ```{r}
 ## ----ggplotcountsgroup, fig.width = 4, fig.height = 3----------------------
 ggplot(geneCounts, aes(x = dex, y = count, color = cell, group = cell)) +
   scale_y_log10() + geom_point(size = 3) + geom_line()
 ```
 
+## The "apeglm" packge is loaded and a Minus Average plot is created.
 ```{r}
 ## ----plotma----------------------------------------------------------------
 library("apeglm")
@@ -417,12 +475,14 @@ res <- lfcShrink(dds, coef="dex_trt_vs_untrt", type="apeglm")
 plotMA(res, ylim = c(-5, 5))
 ```
 
+## This is the plot that lacks the log fold change reduction.
 ```{r}
 ## ----plotmaNoShr-----------------------------------------------------------
 res.noshr <- results(dds, name="dex_trt_vs_untrt")
 plotMA(res.noshr, ylim = c(-5, 5))
 ```
 
+## This shows how to select specific rows or regions of the graph.
 ```{r}
 ## ----plotmalabel-----------------------------------------------------------
 plotMA(res, ylim = c(-5,5))
@@ -433,18 +493,21 @@ with(res[topGene, ], {
 })
 ```
 
+## The histogram shows the p value frequencies, and is most effective when smallest values are excluded.
 ```{r}
 ## ----histpvalue2-----------------------------------------------------------
 hist(res$pvalue[res$baseMean > 1], breaks = 0:20/20,
      col = "grey50", border = "white")
 ```
 
+## The "genefilter" package is loaded and used to show gene clustering.
 ```{r}
 ## --------------------------------------------------------------------------
 library("genefilter")
 topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 20)
 ```
 
+## This heatmap shows deviation from the ave as opposed to expression strenght.
 ```{r}
 ## ----genescluster----------------------------------------------------------
 mat  <- assay(vsd)[ topVarGenes, ]
@@ -453,6 +516,7 @@ anno <- as.data.frame(colData(vsd)[, c("cell","dex")])
 pheatmap(mat, annotation_col = anno)
 ```
 
+## New bins are created with the "quantile" function and the p values for each are calculated.
 ```{r}
 ## ----sensitivityovermean, fig.width=6--------------------------------------
 qs <- c(0, quantile(resLFC1$baseMean[resLFC1$baseMean > 0], 0:6/6))
@@ -464,23 +528,28 @@ barplot(fractionSig, xlab = "mean normalized count",
                      ylab = "fraction of small p values")
 ```
 
+## ## This line is  not executed, but is similar to the previous block of code.
 ```{r}
 ## ---- eval=FALSE-----------------------------------------------------------
 #  library("IHW")
 #  res.ihw <- results(dds, filterFun=ihw)
 ```
 
+
+## The "AnnotationDbi" and "org.Hs.eg.db" packages are loaded.
 ```{r}
 ## --------------------------------------------------------------------------
 library("AnnotationDbi")
 library("org.Hs.eg.db")
 ```
 
+## This is a list of the available key types from the AnnotationDbi database. 
 ```{r}
 ## --------------------------------------------------------------------------
 columns(org.Hs.eg.db)
 ```
 
+## This is used to specify what information is desired from the database.
 ```{r}
 ## --------------------------------------------------------------------------
 ens.str <- substr(rownames(res), 1, 15)
@@ -496,12 +565,14 @@ res$entrez <- mapIds(org.Hs.eg.db,
                      multiVals="first")
 ```
 
+## These are the external gene IDs.
 ```{r}
 ## --------------------------------------------------------------------------
 resOrdered <- res[order(res$pvalue),]
 head(resOrdered)
 ```
 
+## This code is not evaluated.
 ```{r}
 ## ----eval=FALSE------------------------------------------------------------
 #  resOrderedDF <- as.data.frame(resOrdered)[1:100, ]
@@ -516,6 +587,7 @@ head(resOrdered)
 #  browseURL(url)
 ```
 
+## This plots the differential expression results in the genomic space.
 ```{r}
 ## --------------------------------------------------------------------------
 resGR <- lfcShrink(dds, coef="dex_trt_vs_untrt", type="apeglm", format="GRanges")
