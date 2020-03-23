@@ -1,0 +1,15 @@
+---
+title: "Geneology Tree"
+author: "Nathan Haywood"
+date: "3/23/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Not a lot is known about my Dad's side of the family, nor are there many official records that I've found to suggest any other previous relations.
+```{r pressure, echo=FALSE, fig.cap="Haywood Family Partial Tree", out.width = '100%'}
+knitr::include_graphics("Family_Tree.png")
+```
