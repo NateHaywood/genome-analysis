@@ -6,9 +6,12 @@ output: html_document
 ---
 
 ```{r}
+library(dplyr)
 library(tidyverse)
 library(lubridate)
 library(plotly)
+library(maps)
+library(viridis)
 ```
 
 ```{r}
@@ -17,34 +20,33 @@ head(report_3_31_2020)
 str(report_3_31_2020)
 ```
 
-
-## Total confirmed cases for each US state.
+## Total number of cases for each US state.
 ```{r}
 fig1 <- report_3_31_2020 %>% 
   filter (Country_Region == "US") %>%
   group_by(Province_State) %>%
-  summarise(Confirmed = sum(Confirmed)) %>%
-  ggplot(aes(x = Confirmed,  y = reorder(Province_State, Confirmed))) + 
+  summarise(Total = sum(Confirmed) + sum(Deaths) + sum(Recovered)) %>%
+  ggplot(aes(x = Total,  y = reorder(Province_State, Total))) + 
     geom_point() +
-    ggtitle("Confirmed cases for each US State as of 3-31-20") +
+    ggtitle("Total number of Cases for each US State as of 3-31-20") +
     ylab("Country/Region") +
-    xlab("Confirmed Cases")
+    xlab("Cases")
 
 ggplotly(fig1)
 ```
 
-## 10 Nation with Most Confirmed Cases
+## 10 Nation with the Fewest Confirmed Cases
 ```{r}
 fig2 <- report_3_31_2020 %>% 
   group_by(Country_Region) %>%
   summarise(Confirmed = sum(Confirmed)) %>%
-  arrange(desc(Confirmed)) %>%
+  arrange(Confirmed) %>%
   dplyr::slice(1:10) %>%
   ggplot(aes(y = Confirmed,  x = reorder(Country_Region, Confirmed))) + 
     geom_bar(stat = 'identity') +
-    ggtitle("10 Nation with Most Confirmed Cases as of 3-31-20") +
-    ylab("Country/Region") +
-    xlab("Confirmed Cases") +
+    ggtitle("10 Nation with Fewest Confirmed Cases as of 3-31-20") +
+    ylab("Confirmed Cases") +
+    xlab("Country/Region") +
     coord_flip()
 
 ggplotly(fig2)
@@ -86,7 +88,6 @@ Global_Time_Series_Recovered_Long <- Global_Time_Series_Recovered %>%
                             names_to = "Date", values_to = "Recovered") 
 ```
 
-
 ```{r}
 US_Time_Series_Confirmed_Long <- US_Time_Series_Confirmed_Long %>%
   unite(Key, Combined_Key, Date, sep = ".", remove = FALSE)
@@ -116,7 +117,6 @@ US_Time_Series_Concat_Counts <- US_Time_Series_Concat %>%
 
 US_Time_Series_Concat_Counts
 ```
-
 
 ```{r}
 Global_Time_Series_Confirmed_Long <- Global_Time_Series_Confirmed_Long %>%
@@ -160,16 +160,63 @@ Global_Time_Series_Concat_Counts
 fig3 <- US_Time_Series_Concat %>%
   group_by(Province_State, Date) %>%
   summarize_at(c("Confirmed", "Deaths"), sum) %>%
-  ggplot(aes(x = Date,  y = Confirmed)) + 
+  filter(Province_State %in% c("Connecticut", "Maine", "New Hampshire", "Vermont", "New York", "Rhode Island", "Massachusetts")) %>%
+  ggplot(aes(x = Date,  y = Confirmed, color = Province_State)) + 
     geom_point() +
     geom_line() +
-    ggtitle("US Confirmed COVID-19 Cases")
+    ggtitle("COVID-19 Cases in the US Northeast")
 
 ggplotly(fig3)
 ```
 
+```{r}
+fig4 <- Global_Time_Series_Concat_Counts %>%
+  group_by(Country_Region, Date) %>%
+  filter(Country_Region %in% c("Morocco", "Algeria", "Tunisia", "Libya", "Egypt", "Sudan")) %>%
+  ggplot(aes(x = Date, y = Counts, color = Report_Type)) +
+    geom_point() +
+    geom_line() +
+    ggtitle("COVID-19 Cases in Northern Africa") +
+    facet_wrap(~Country_Region, ncol = 2, scales = "free_y")
 
+ggplotly(fig4)
+```
 
+```{r}
+fig5 <-ggplot(report_3_31_2020 %>%
+         filter(Country_Region == "US") %>%
+              filter (!Province_State %in% c("Alaska","Hawaii", "American Samoa",
+                  "Puerto Rico","Northern Mariana Islands", 
+                  "Virgin Islands", "Recovered", "Guam", "Grand Princess",
+                  "District of Columbia", "Diamond Princess")) %>%
+              filter(Lat > 0) %>%
+              arrange(desc(Confirmed)) %>%
+              dplyr::slice(1:100), aes(x = Long_, y = Lat, size = Confirmed)) +
+    borders("state", colour = "black", fill = "grey") +
+    theme_bw() +
+    geom_point(shape = 21, color='red', fill='red', alpha = 0.5) +
+    labs(title = '100 Regions with the Most US COVID-19 Confirmed cases as of 3-31-20',x = '', y = '',
+        size="Cases)") +
+    theme(legend.position = "right") +
+    coord_fixed(ratio=1.5)
+
+ggplotly(fig5)
+
+```
+
+```{r}
+fig6 <- ggplot(subset(Global_Time_Series_Concat, Date %in% seq(min(Date, na.rm = TRUE), max(Date, na.rm = TRUE), 14)), aes(x = Long, y = Lat, size = Confirmed)) +
+    borders("world", colour = "black", fill = "grey") +
+    theme_bw() +
+    geom_point(shape = 21, color='red', fill='red', alpha = 0.5) +
+    labs(title = 'Global Growth of the Confirmed Virus Cases',x = 'Longitude', y = 'Latitude',
+        size="Cases)") +
+    theme(legend.position = "right") +
+    coord_fixed(ratio=1.5) +
+    facet_wrap(.~Date, ncol = 1)
+
+fig6
+```
 
 
 

@@ -1,0 +1,25 @@
+---
+title: "COVID19 Data Report"
+author: "Nathan Haywood"
+date: "4/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(lubridate)
+library(plotly)
+library(maps)
+library(viridis)
+library(mapdata)
+library(wesanderson)
+```
+
+
+
+
