@@ -58,45 +58,62 @@ last_date = max(global_time_series$Date, na.rm = TRUE)
 # Define reporting types
 Report_Type = c("Confirmed", "Deaths", "Recovered")
 
-# Selecting a subset of Countries
-global_time_series <- global_time_series %>%
-    filter(global_time_series$Country_Region %in% c("US", "China", "Italy", "France", "Spain"))
-
 # Create list of countries
 Countries = global_time_series$Country_Region
 
-
-# Define UI for application that draws a histogram
+# Define UI for application 
 ui <- fluidPage(
-
+    
     # Application title
-    titlePanel("World Covid Data Graphs"),
+    titlePanel("Example Graphs from COVID-19 Reporting data"),
     p("Data for this application are from the Johns Hopkins Center for Systems Science and Engineering",
       tags$a("GitHub Repository", href="https://github.com/CSSEGISandData")
     ),
-
-    # Sidebar with a slider input for number of bins 
+    tags$br(),
+    tags$hr(),  # Adds line to page
+    
     sidebarLayout(
         sidebarPanel(
+            # Select Country
+            selectInput("select_country", 
+                        label = "Country", 
+                        choices = Countries),
+            # Select Reporting type
+            selectInput("select_type", 
+                        label = "Report Type", 
+                        choices = Report_Type, 
+                        selected = "Confirmed"),
             # Date range
-            sliderInput("Date", label = "Date range", min(global_time_series$Date, na.rm = TRUE), max(global_time_series$Date, na.rm = TRUE), min(global_time_series$Date, na.rm = TRUE))
+            sliderInput("Date", label = "Dates", min(global_time_series$Date, na.rm = TRUE), max(global_time_series$Date, na.rm = TRUE), min(global_time_series$Date, na.rm = TRUE))
         ),
-
+        
         # Show a plot of the generated distribution
         mainPanel(
-           plotOutput("Plot1")
+            plotOutput("Plot1")
         )
     )
 )
 
-# Define server logic required to draw a histogram
+# Define server logic required to make the plot
 server <- function(input, output) {
-
+    
     output$Plot1 <- renderPlot({
-        ggplot(time_series_confirmed_long %>%
-                   filter(Country_Region %in% c("US", "China", "Italy", "France", "Spain")), 
-               aes_string(x = "Country_Region",  y = "Confirmed", color = "Country_Region")) +
-            geom_bar(stat = "identity")
+        # Graph specific code
+        pick_country <- global_time_series %>% 
+            group_by(Country_Region,Date) %>% 
+            summarise_at(c("Confirmed", "Deaths", "Recovered"), sum) %>% 
+            # Here is where we select the country
+            filter (Country_Region == input$select_country)
+        
+        # Note that aes_strings was used to accept y input and needed to quote other variables
+        ggplot(pick_country, aes_string(x = "Lat",  y = "Long", color = "Country_Region")) + 
+            borders("world", colour = "black", fill = "grey") +
+            theme_bw() +
+            geom_point(shape = 21, color='red', fill='red', alpha = 0.5) +
+            theme(legend.position = "right") +
+            coord_fixed(ratio=1.5)+
+            xlim(input$dates) +
+            ggtitle("JHU COVID-19 data for reporting type:", input$select_type)
     })
 }
 

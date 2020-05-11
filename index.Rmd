@@ -22,9 +22,7 @@ Here are the last few labs from the class:
 
 *[Lab10](Covid19Graphs2.html)
 
-*[Lab11/12](temp3)
-
-*[Alternative Lab](temp4)
+*[Lab11/12](https://www.shinyapps.io/admin/#/dashboard)
 
 This syntax is killing me.
 
