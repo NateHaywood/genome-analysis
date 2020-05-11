@@ -6,10 +6,10 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,  warning=FALSE, message=FALSE)
 ```
 
-```{r}
+```{r, include = FALSE}
 library(dplyr)
 library(tidyverse)
 library(lubridate)
@@ -18,7 +18,148 @@ library(maps)
 library(viridis)
 library(mapdata)
 library(wesanderson)
+library(ggplot2)
+library(gganimate)
+library(transformr)
+library(gifski)
+theme_set(theme_bw())
 ```
+
+#### The data represented in these figures is directly from the JHU [CSSEGIS](https://github.com/CSSEGISandData) GitHub Page and goes through a vetting process before being added to the repository. The data is collected from multiple sources and processed by the JHU community before being published and significant work is done to ensure the accuracy and quality of the counts. World data as well as higher definition regional data for within the United States is provided as well as time sourced data to show disease progression and from which viral infection rates can be studied. 
+
+```{r, include = FALSE}
+US_daily_report <-   read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/04-10-2020.csv")) %>% 
+  rename(Long = "Long_") %>% 
+  filter(Country_Region == "US") %>% 
+  filter (!Province_State %in% c("Alaska","Hawaii", "American Samoa",
+                  "Puerto Rico","Northern Mariana Islands", 
+                  "Virgin Islands", "Recovered", "Guam", "Grand Princess",
+                  "District of Columbia", "Diamond Princess")) %>% 
+  filter(Lat > 0)
+```
+
+```{r, include = FALSE}
+Global_daily_report <-   read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/04-10-2020.csv")) %>% 
+  rename(Long = "Long_")
+```
+
+```{r, echo = FALSE}
+ggplot(Global_daily_report, aes(x = Long, y = Lat, size = Confirmed/1000)) +
+    borders("world", colour = NA, fill = "grey") +
+    theme_bw() +
+    geom_point(shape = 21, color='red', fill='red', alpha = 0.5) +
+    labs(title = 'World COVID-19 Confirmed Cases as of 4-10-20',x = '', y = '',
+        size="Cases (x1000))") +
+    theme(legend.position = "right") +
+    coord_fixed(ratio=1.5)
+```
+
+#### The above graph shows the number of confirmed cases per nation in the world as of 4-10-20. These numbers however are skewed predicated on the manner in which the data is collected because of how countries determine their confirmed cases. Along with the issues of inconsistent qualifying of cases, the issue of testing availability comes into play. Regions with less testing capacity will report fewer cases, leading to a potentially false representation of slower or less excessive disease spread. When considering the data in any capacity, it is vital to understand that these are minimum numbers and in reality the number of cases is most likely much higher. 
+
+```{r, echo = FALSE}
+ggplot(US_daily_report, aes(x = Long, y = Lat, size = Confirmed/1000)) +
+    borders("state", colour = "black", fill = "grey") +
+    theme_bw() +
+    geom_point(shape = 21, color='red', fill='red', alpha = 0.5) +
+    labs(title = 'US COVID-19 Confirmed Cases as of 4-10-20',x = '', y = '',
+        size="Cases (x1000))") +
+    theme(legend.position = "right") +
+    coord_fixed(ratio=1.5)
+```
+
+#### As shown on the world map, the US is solidly covered in red, indicating a massive number of cases throughout the nation. This distribution exists more apparently in the US as opposed to other nations because of the county and region specificity of the data that is available for the US. Looking at the data for the US as shown above, the Eastern side of the country appears most heavily impacted by the virus. However, further analysis of the data can show more useful details for the spread and density of the cases in the US.
+
+```{r, echo = FALSE}
+ggplot(US_daily_report %>%
+         filter(Confirmed > 50),
+       aes(x = Long, y = Lat, size = Confirmed/1000)) +
+    borders("state", colour = "black", fill = "grey") +
+    theme_bw() +
+    geom_point(shape = 21, color='red', fill='red', alpha = 0.5) +
+    labs(title = 'US COVID-19 Confirmed Cases as of 4-10-20',x = '', y = '',
+        size="Cases (x1000))") +
+    theme(legend.position = "right") +
+    coord_fixed(ratio=1.5)
+```
+
+#### When isolating for the regions with the highest number of cases, specific trends begin to appear with pockets of concentrated cases. These pockets coincide with the locations of major US cities including but not limited to Boston, New York, Chicago, Detroit, Atlanta, New Orleans, Miami, LA, San Fransico and Seatle. These hotspots are most importantly considered because of population density allowing the virus to spread most quickly within the cities.
+
+```{r, echo = FALSE}
+ggplot(US_daily_report %>%
+         filter(Confirmed < 10),
+       aes(x = Long, y = Lat, size = Confirmed/1000)) +
+    borders("state", colour = "black", fill = "grey") +
+    theme_bw() +
+    geom_point(shape = 21, color='green', fill='green', alpha = 0.5) +
+    labs(title = 'US COVID-19 Confirmed Cases as of 4-10-20',x = '', y = '',
+        size="Cases (x1000))") +
+    theme(legend.position = "right") +
+    coord_fixed(ratio=1.5)
+```
+
+#### When in turn looking at regions with the lowest number of cases as shown above, a massive area appears to have the lower infection rates, which pockets of either no cases or high infection rates appearing in either major cities such as New York, Boston, Atlanta, and Chicago or in rural isolated regions such as Nevada or New Mexico.
+
+```{r, include = FALSE}
+time_series_confirmed_long <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")) %>%
+  rename(Province_State = "Province/State", Country_Region = "Country/Region")  %>% 
+               pivot_longer(-c(Province_State, Country_Region, Lat, Long),
+                            names_to = "Date", values_to = "Confirmed") 
+# Let's get the times series data for deaths
+time_series_deaths_long <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv")) %>%
+  rename(Province_State = "Province/State", Country_Region = "Country/Region")  %>% 
+  pivot_longer(-c(Province_State, Country_Region, Lat, Long),
+               names_to = "Date", values_to = "Deaths")
+time_series_recovered_long <- read_csv(url("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_recovered_global.csv")) %>%
+  rename(Province_State = "Province/State", Country_Region = "Country/Region") %>% 
+  pivot_longer(-c(Province_State, Country_Region, Lat, Long),
+               names_to = "Date", values_to = "Recovered")
+# Create Keys 
+time_series_confirmed_long <- time_series_confirmed_long %>% 
+  unite(Key, Province_State, Country_Region, Date, sep = ".", remove = FALSE)
+time_series_deaths_long <- time_series_deaths_long %>% 
+  unite(Key, Province_State, Country_Region, Date, sep = ".") %>% 
+  select(Key, Deaths)
+time_series_recovered_long <- time_series_recovered_long %>% 
+  unite(Key, Province_State, Country_Region, Date, sep = ".") %>% 
+  select(Key, Recovered)
+# Join tables
+time_series_long_joined <- full_join(time_series_confirmed_long,
+              time_series_deaths_long, by = c("Key"))
+time_series_long_joined <- full_join(time_series_long_joined,
+              time_series_recovered_long, by = c("Key")) %>% 
+    select(-Key)
+# Reformat the data
+time_series_long_joined$Date <- mdy(time_series_long_joined$Date)
+# Create Report table with counts
+time_series_long_joined_counts <- time_series_long_joined %>% 
+  pivot_longer(-c(Province_State, Country_Region, Lat, Long, Date),
+               names_to = "Report_Type", values_to = "Counts")
+```
+
+```{r, echo = FALSE}
+data_time <- time_series_long_joined %>% 
+    group_by(Country_Region,Date) %>% 
+    summarise_at(c("Confirmed", "Deaths", "Recovered"), sum) %>% 
+    filter (Country_Region == "US") 
+p <- ggplot(data_time, aes(x = Date,  y = Confirmed, color = "Red")) + 
+      geom_point() +
+      geom_line() +
+      ggtitle("Confirmed US COVID-19 Cases") +
+      geom_point(aes(group = seq_along(Date))) +
+      transition_reveal(Date) 
+animate(p,renderer = gifski_renderer(), end_pause = 15)
+```
+
+#### The other useful side of this data is look at how it spreads as a function of time. With respect to the US as a whole, the growth factor is exponential, but we know that it will eventually hit a carrying capacity and level off at a local max. Following that, it is more likely than not that a second wave will follow the relaxing of government containment measures and there will be another spike in the case load. Given more time, this graph will show a more interesting story.
+
+
+
+
+
+
+
+
+
 
 
 

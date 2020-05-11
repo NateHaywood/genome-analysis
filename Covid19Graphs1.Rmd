@@ -204,35 +204,21 @@ ggplotly(fig5)
 
 ```
 
-```{r}
-fig6 <- ggplot(subset(Global_Time_Series_Concat, Date %in% seq(min(Date, na.rm = TRUE), max(Date, na.rm = TRUE), 14)), aes(x = Long, y = Lat, size = Confirmed)) +
+```{r, fig.width=5, fig.height=10}
+temp <- subset(Global_Time_Series_Concat, Date %in% seq.Date(min(Date, na.rm = TRUE), as.Date("2020/04/29"), 14))
+
+fig6 <- ggplot(temp, aes(x = Long, y = Lat, size = Confirmed)) +
     borders("world", colour = "black", fill = "grey") +
     theme_bw() +
     geom_point(shape = 21, color='red', fill='red', alpha = 0.5) +
     labs(title = 'Global Growth of the Confirmed Virus Cases',x = 'Longitude', y = 'Latitude',
-        size="Cases)") +
+        size="Cases") +
     theme(legend.position = "right") +
     coord_fixed(ratio=1.5) +
-    facet_wrap(.~Date, ncol = 1)
+    facet_wrap(.~Date, ncol = 2)
 
 fig6
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

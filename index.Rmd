@@ -18,6 +18,14 @@ Here are the last few labs from the class:
 
 *[Lab5E](Lab5_nch_Exercises.html)
 
+*[Lab9](Covid19Graphs1.html)
+
+*[Lab10](Covid19Graphs2.html)
+
+*[Lab11/12](temp3)
+
+*[Alternative Lab](temp4)
+
 This syntax is killing me.
 
 Application written in R [@RCoreTeam] using the Shiny framework [@Chang2015].
